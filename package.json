@@ -51,8 +51,9 @@
     "balajs": "^1.0.7",
     "balalaika": "^1.0.1",
     "element-closest": "^3.0.2",
+    "firebase": "^8.2.1",
+    "leancloud-storage": "^3.0.4",
     "storejs": "^1.0.25",
-    "xss": "^1.0.6",
-    "leancloud-storage": "^3.0.4"
+    "xss": "^1.0.6"
   }
 }

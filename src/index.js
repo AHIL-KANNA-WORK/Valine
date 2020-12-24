@@ -8,6 +8,8 @@ const Utils = require('./utils/domUtils');
 const Emoji = require('./plugins/emojis');
 const hanabi = require('hanabi');
 const AV = require('leancloud-storage')
+var firebase = require("firebase/app");
+require("firebase/database");
 const defaultComment = {
     comment: '',
     nick: 'Anonymous',
@@ -182,6 +184,8 @@ ValineFactory.prototype._init = function(){
 
         let id = root.config.app_id || root.config.appId;
         let key = root.config.app_key || root.config.appKey;
+        let storage = root.config.storage || 'leancloud';
+        let projectId = root.config.projectId || '';
         if (!id || !key) throw 99;
 
         let prefix = 'https://';
@@ -202,11 +206,23 @@ ValineFactory.prototype._init = function(){
         }
         serverURLs = root.config['serverURLs'] || prefix + 'avoscloud.com';
         try {
-            AV.init({
-                appId: id,
-                appKey: key,
-                serverURLs: serverURLs,
-            });
+            if(storage==='firebase'){
+                let firebaseConfig = {
+                    apiKey: apiKey, 
+                    authDomain: projectId + ".firebaseapp.com",
+                    databaseURL: "https://" + projectId + ".firebaseio.com",
+                    projectId: projectId,
+                    storageBucket: projectId + ".appspot.com",
+                    appId: appId
+                };
+                firebase.initializeApp(firebaseConfig);
+            } else {
+                AV.init({
+                    appId: id,
+                    appKey: key,
+                    serverURLs: serverURLs,
+                });
+            }
         } catch (ex) { }
 
         // get comment count
@@ -225,6 +241,7 @@ ValineFactory.prototype._init = function(){
         })
 
         // Counter
+        // todo:firebase
         visitor && CounterFactory.add(AV.Object.extend('Counter'),root.config.path);
 
 
@@ -328,6 +345,7 @@ ValineFactory.prototype._init = function(){
 // 新建Counter对象
 let createCounter = function (Counter, o) {
     let newCounter = new Counter();
+    // todo:firebase
     let acl = new AV.ACL();
     acl.setPublicReadAccess(true);
     acl.setPublicWriteAccess(true);
@@ -359,6 +377,7 @@ let CounterFactory = {
             }
             // 判断是否需要+1
             if (decodeURI(url) === decodeURI(currPath)) {
+                //todo:firebase
                 let query = new AV.Query(Counter);
                 query.equalTo('url', url);
                 query.find().then(ret => {
@@ -392,6 +411,7 @@ let CounterFactory = {
             if (lvs.hasOwnProperty(i)) urls.push(Utils.attr(lvs[i], 'id'))
         }
         if (urls.length) {
+            // todo:firebase
             let query = new AV.Query(Counter);
             query.containedIn('url', urls);
             query.find().then(ret => {
